@@ -1,3 +1,7 @@
+require_relative './utils.rb'
+
+
+
 module Taskpaper
   # Every line of a file is a node.
   # The document itself is a node.
@@ -23,22 +27,20 @@ module Taskpaper
     attr_reader :type, :value, :parent, :children
 
     def initialize(attrs = { })
-      _attrs = {
+      def_attrs = {
         :type => nil,
         :value => nil,
         :parent => nil,
         :children => [ ]
       }
 
-      _attrs.each do |key,val|
-        public_send("#{key}=", val)
-      end
-
       if attrs.is_a?(Hash)
-        attrs.each do |key,val|
-          if _attrs.has_key?(key)
-            public_send("#{key}=", val)
-          end
+        def_attrs.sieve(attrs).each do |key,val|
+          public_send("#{key}=", val)
+        end
+      else
+        def_attrs.each do |key,val|
+          public_send("#{key}=", val)
         end
       end
     end
@@ -96,7 +98,7 @@ module Taskpaper
       when :doc
         ["document", "name"]
       when :head
-        ["project", "title"]
+        ["project", "value"]
       when :item
         ["task", "value"]
       when :note
