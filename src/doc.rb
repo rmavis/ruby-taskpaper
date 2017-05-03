@@ -46,7 +46,7 @@ end
 
 
 
-doc = Taskpaper::Doc.new('sample.taskpaper')
-node = doc.parse
-# puts node.to_tp
-puts node.to_json
+# doc = Taskpaper::Doc.new('sample.taskpaper')
+# node = doc.parse
+# # puts node.to_tp
+# puts node.to_json

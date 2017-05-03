@@ -44,5 +44,11 @@ module Taskpaper
       end
     end
 
+
+
+    def to_json
+      return "{\"value\":\"#{self.value}\",\"param\":\"#{self.param}\"}"
+    end
+
   end
 end

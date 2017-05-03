@@ -13,6 +13,7 @@ module Taskpaper
 
     def initialize(attrs = { })
       super(attrs)
+      self.type = :item
       self.tags = (attrs.has_key?(:tags)) ? attrs[:tags] : [ ]
     end
 
@@ -24,6 +25,21 @@ module Taskpaper
       else
         raise TypeError.new("A task's tags must be nil or an array.")
       end
+    end
+
+
+
+    def to_json
+      d = self.descriptor
+      v = (self.value.nil?) ? 'nil' : self.value
+
+      c = ''
+      self.children.each { |child| c += child.to_json }
+
+      t = [ ]
+      self.tags.each { |tag| t.push(tag.to_json) }
+
+      return "{\"type\":\"#{d[0]}\",\"#{d[1]}\":\"#{v}\",\"tags\":[#{t.join(',')}],\"children\":[#{c}]}"
     end
 
   end
