@@ -7,7 +7,7 @@ require_relative './tag.rb'
 module Taskpaper
   class Parser
 
-    attr_reader :filename, :nodes
+
 
     def initialize(filename = '')
       @filename = nil
@@ -17,6 +17,8 @@ module Taskpaper
         @filename = filename
       end
     end
+
+    attr_reader :filename, :nodes
 
 
 
@@ -31,7 +33,7 @@ module Taskpaper
 
 
     def read_lines(filename = self.filename)
-      nodes = Taskpaper::Node.new({:type => :doc, :value => filename})
+      nodes = Taskpaper::Node.new({:type => :doc, :value => File.basename(filename)})
       parents = [nodes]
 
       # Every line of the file is a Node.
@@ -43,24 +45,28 @@ module Taskpaper
         current = 0
         while current < line.length
           char = line[current]
-          # puts "Checking character '#{char}'"
 
-          if char == "\t"
+          # The only meaningful characters are:
+          # - tabs, which designate hierarchy
+          # - dash + space, which indicates a task/item
+          # - colon, when it occurs at the end of a line,
+          #   to designate a project/head
+
+          if (char == "\t")
             tab_count += 1
             current += 1
             next
-            # puts "Character is a tab. Tab count: #{tab_count}"
 
           elsif ((char == '-') &&
                  (line[(current + 1)] == ' ') &&
                  (line.length > (current + 1)))
-            # puts "Node is a task/item."
+            # Skip the dash and space characters.
             node = read_item(line[(current + 2), (line.length - current + 2)])
             current = line.length
             next
 
           else
-            node = read_note_or_head(line[current, (line.length - current + 1)])
+            node = read_head_or_note(line[current, (line.length - current + 1)])
             current = line.length
             next
           end
@@ -77,14 +83,18 @@ module Taskpaper
 
 
 
-    def read_note_or_head(str = '')
+    # Pass this a string that should be a `head` or a `note` node.
+    # If it's a `head`, the trailing colon will be removed from the
+    # node's `value`.
+    def read_head_or_note(str = '')
       node = Taskpaper::Node.new
-      node.value = str
 
-      if str[(str.length - 1)] == ':'
+      if (str[(str.length - 1)] == ':')
         node.type = :head
+        node.value = str.chop
       else
         node.type = :note
+        node.value = str
       end
 
       return node
@@ -92,6 +102,11 @@ module Taskpaper
 
 
 
+    # Pass this a string that should be an `item` node. Do not
+    # include the leading dash and space characters. If tags are
+    # present, the node's `tags` array will be filled but they will
+    # not be removed from its `value`. This is because tags could
+    # have some semantic value and occur anywhere in the string.
     def read_item(str = '')
       chars = [ ]
       tags = [ ]
@@ -100,8 +115,10 @@ module Taskpaper
       while current < str.length
         char = str[current]
 
-        if char == '@'
-          if str[(current - 1)] == ' '
+        # Tags are indicated by a leading `@`.
+        if (char == '@')
+          # So it's only a tag if the preceding character is a space.
+          if (str[(current - 1)] == ' ')
             _t = read_tag(str[(current + 1), (str.length - current + 1)])
             adv = (_t[:length] + 1)  # The 1 accommodates the '@'
             # puts "Pushing `#{str[current, adv]}`"
@@ -127,9 +144,15 @@ module Taskpaper
 
 
 
+    # Pass this a string that should be a tag. Do not include the
+    # leading `@`. Tags can include parameters, which are wrapped in
+    # parentheses. Tags can be nested but, for our purposes, are not
+    # handled in that way. This returns a hash containing two keys:
+    # - :tag, being a Tag node
+    # - :length, being the length of the substring read from the
+    #   parameter, which is useful for advancing the read position
+    #   in `read_line`
     def read_tag(str = '')
-      # puts "Reading the next tag from `#{str}`"
-
       value = [ ]
       param = [ ]
 
@@ -139,69 +162,47 @@ module Taskpaper
       while current < str.length
         char = str[current]
 
-        # puts "Checking index `#{current}`: `#{char}`"
-
-        if char == '('
+        if (char == '(')
           open_parens += 1
-          # puts "Character is an open paren. There are #{open_parens} currently open."
           if open_parens == 1
-            # puts "Will start saving characters to `param`."
             pushto = param
           else
-            # puts "Pushing character."
             pushto.push(char)
           end
-          current += 1
-          next
 
-        elsif char == ')'
+        elsif (char == ')')
           open_parens -= 1
-          # puts "Character is a close paren. There are #{open_parens} currently open."
+          # If it's the final closing paren, that ends the tag.
           if ((open_parens == 0) &&
               ((str[(current + 1)].nil?) ||
                (str[(current + 1)] == ' ')))
-            # puts "And that ends the reading of this tag."
+            # Include the final character in the length.
             current += 1
             break
           else
-            # puts "Pushing character."
             pushto.push(char)
-            current += 1
-            next
           end
 
-        elsif char == ' '
-          # puts "Character is a space."
+        elsif (char == ' ')
+          # A space can either end the tag or be part of the param.
           if (open_parens > 0)
-            # puts "There are #{open_parens} open parens. Pushing character."
             pushto.push(char)
-            current += 1
-            next
           else
-            # puts "There are no open parens. Ending loop."
-            # current += 1
             break
           end
 
         else
-          # puts "Pushing character."
           pushto.push(char)
-          current += 1
-          next
         end
+
+        current += 1
       end
 
       tag = nil
 
       if !value.empty?
-        tag = Taskpaper::Tag.new()
-        tag.value = value.join
-        if !param.empty?
-          tag.param = param.join
-        end
-        # puts "Returning tag with value `#{tag.value}` and param `#{tag.param}` and index #{current}."
-      else
-        # puts "Returning nil and index #{current}."
+        tag = Taskpaper::Tag.new({:value => value.join})
+        tag.param = param.join if !param.empty?
       end
 
       return {
@@ -215,7 +216,7 @@ end
 
 
 
-# p = Taskpaper::Parser.new('../sample.taskpaper')
-# node = p.read_lines
-# # puts node.to_tp
-# puts node.to_json
+p = Taskpaper::Parser.new('../sample.taskpaper')
+node = p.read_lines
+# puts node.to_tp
+puts node.to_json
