@@ -19,3 +19,13 @@ class Hash
   end
 
 end
+
+
+
+class String
+
+  def escape(char)
+    return self.gsub(char, "\\#{char}")
+  end
+
+end

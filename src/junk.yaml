@@ -1,0 +1,159 @@
+type: "document"
+name: "sample.taskpaper"
+children:
+  - type: "project"
+    value: "One project"
+    children:
+      - type: "task"
+        value: "Here's a task, converted by `ruby` :)"
+        children:
+        tags:
+      - type: "task"
+        value: "Here's a _special_ task with a **link**: http://twitter.com/mattgemmell"
+        children:
+        tags:
+      - type: "task"
+        value: "An example task goes here @my-tag @your-tag"
+        children:
+        tags:
+          - value: "my-tag"
+            param: null
+          - value: "your-tag"
+            param: null
+      - type: "task"
+        value: "Call the person about the thing @today @tomorrow @never"
+        children:
+        tags:
+          - value: "today"
+            param: null
+          - value: "tomorrow"
+            param: null
+          - value: "never"
+            param: null
+      - type: "task"
+        value: "Call the \"person's'\"' @about(wat) the thing @today @tomorrow @never"
+        children:
+        tags:
+          - value: "about"
+            param: "wat"
+          - value: "today"
+            param: null
+          - value: "tomorrow"
+            param: null
+          - value: "never"
+            param: null
+      - type: "project"
+        value: "Sub-project"
+        children:
+          - type: "task"
+            value: "This is an important thing @flag"
+            children:
+              - type: "note"
+                value: "This is a note with a link http://mattgemmell.com/ @my-tag"
+                children:
+            tags:
+              - value: "flag"
+                param: null
+      - type: "task"
+        value: "A thing I should do @due(2016-03-29 2pm)"
+        children:
+        tags:
+          - value: "due"
+            param: "2016-03-29 2pm"
+  - type: "project"
+    value: "Another project"
+    children:
+      - type: "task"
+        value: "Release some source code @done"
+        children:
+        tags:
+          - value: "done"
+            param: null
+      - type: "task"
+        value: "Email matt@mattgemmell.com or visit his site at mattgemmell.com"
+        children:
+        tags:
+      - type: "task"
+        value: "Work on that thing @context(work)"
+        children:
+        tags:
+          - value: "context"
+            param: "work"
+      - type: "task"
+        value: "Get some exercise @context(outside)"
+        children:
+        tags:
+          - value: "context"
+            param: "outside"
+  - type: "project"
+    value: "Priorities"
+    children:
+      - type: "task"
+        value: "This is very important @priority(high)"
+        children:
+        tags:
+          - value: "priority"
+            param: "high"
+      - type: "task"
+        value: "So is this @priority(1)"
+        children:
+        tags:
+          - value: "priority"
+            param: "1"
+      - type: "task"
+        value: "This is of moderate importance @priority(normal)"
+        children:
+        tags:
+          - value: "priority"
+            param: "normal"
+      - type: "task"
+        value: "This isn't very important at all @priority(low)"
+        children:
+        tags:
+          - value: "priority"
+            param: "low"
+      - type: "task"
+        value: "Nor is this @priority(5)"
+        children:
+        tags:
+          - value: "priority"
+            param: "5"
+  - type: "project"
+    value: "[Searches]"
+    children:
+      - type: "task"
+        value: "Next Actions @search(project *//\(\(not @done\) and \(not @search\)\)[0])"
+        children:
+        tags:
+          - value: "search"
+            param: "project *//\(\(not @done\) and \(not @search\)\)[0]"
+      - type: "task"
+        value: "Due Today @search(not @done and \(@today or @due <=[d] today +1d or @due <=[d] today\))"
+        children:
+        tags:
+          - value: "search"
+            param: "not @done and \(@today or @due <=[d] today +1d or @due <=[d] today\)"
+      - type: "task"
+        value: "Due within 7 days @search(not @done and \(@today or @due <=[d] today +7d or @due <=[d] today\))"
+        children:
+        tags:
+          - value: "search"
+            param: "not @done and \(@today or @due <=[d] today +7d or @due <=[d] today\)"
+      - type: "task"
+        value: "Priority: High @search(not @done and \(@priority = [i]high or @priority = 1\))"
+        children:
+        tags:
+          - value: "search"
+            param: "not @done and \(@priority = [i]high or @priority = 1\)"
+      - type: "task"
+        value: "Flagged @search(not @done and @flag)"
+        children:
+        tags:
+          - value: "search"
+            param: "not @done and @flag"
+      - type: "task"
+        value: "Context: Work @search(not @done and @context = [i]work)"
+        children:
+        tags:
+          - value: "search"
+            param: "not @done and @context = [i]work"

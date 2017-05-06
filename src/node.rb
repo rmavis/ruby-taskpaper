@@ -24,8 +24,6 @@ module Taskpaper
 
 
 
-    attr_reader :type, :value, :parent, :children
-
     def initialize(attrs = { })
       def_attrs = {
         :type => nil,
@@ -44,6 +42,8 @@ module Taskpaper
         end
       end
     end
+
+    attr_reader :type, :value, :parent, :children
 
 
 
@@ -83,11 +83,11 @@ module Taskpaper
 
 
 
-    def children=(arr = nil)
-      if arr.nil? || arr.is_a?(Array)
+    def children=(arr = [ ])
+      if arr.is_a?(Array)
         @children = arr
       else
-        raise TypeError.new("A node's children must be nil or an array.")
+        raise TypeError.new("A node's `children` must be an array.")
       end
     end
 
@@ -139,30 +139,55 @@ module Taskpaper
 
 
 
-    def to_tp(tabs = -1)
-      tp = [ ]
+    def to_h(trans = { })
+      d = self.descriptor
 
-      if ((self.type != :doc) && (self.value.is_a?(String)))
-        tp.push("#{("\t" * tabs)}#{self.value}")
-      end
+      t = (trans.has_key?(:type)) ? trans[:type].call(self.type) : d[0]
+      v = (trans.has_key?(:value)) ? trans[:value].call(self.value) : self.value
 
-      if self.children.length > 0
-        self.children.each { |child| tp.push(child.to_tp((tabs + 1))) }
-      end
-
-      return tp.join("\n")
+      return {
+        :type => t,
+        d[1].to_sym => v,
+        :children => self.children.map { |child| child.to_h(trans) }
+      }
     end
 
 
 
     def to_json
-      d = self.descriptor
-      v = (self.value.nil?) ? 'nil' : self.value
+      require_relative './json-printer.rb'
+      p = JsonPrinter.new(self)
+      return p.print_node
+    end
 
-      c = ''
-      self.children.each { |child| c += child.to_json }
 
-      return "{\"type\":\"#{d[0]}\",\"#{d[1]}\":\"#{v}\",\"children\":[#{c}]}"
+
+    def to_yaml(tabs = 0, sep = '  ')
+      require_relative './yaml-printer.rb'
+      p = YamlPrinter.new(self)
+      return p.print_node
+    end
+
+
+
+    def to_tp(tabs = -1, sep = "\t")
+      tp = [ ]
+
+      if (self.type != :doc)
+        if (self.type == :head)
+          tp.push("#{(sep * tabs)}#{self.value}:")
+        elsif (self.type == :item)
+          tp.push("#{(sep * tabs)}- #{self.value}")
+        else
+          tp.push("#{(sep * tabs)}#{self.value}")
+        end
+      end
+
+      if (self.children.length > 0)
+        self.children.each { |child| tp.push(child.to_tp((tabs + 1), sep)) }
+      end
+
+      return tp.join("\n")
     end
 
 

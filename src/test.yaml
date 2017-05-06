@@ -1,0 +1,20 @@
+type: document
+value: filename
+children:
+  - type: task
+    value: whatever
+    tags:
+      - value: tagtag
+        param: coolcool
+      - value: another
+        param: null
+  - type: note
+    value: cool note yeah
+  - type: task
+    value: yup
+    children:
+      - type: task
+        value: subtask
+        tags:
+          - value: hellacool
+            param: yup
