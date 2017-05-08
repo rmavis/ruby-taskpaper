@@ -4,7 +4,6 @@ module Taskpaper
   class Session
 
     def self.start(args = [ ])
-
     end
 
   end

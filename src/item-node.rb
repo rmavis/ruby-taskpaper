@@ -35,28 +35,5 @@ module Taskpaper
       return h
     end
 
-
-
-    def to_yaml(tabs = 0, sep = '  ')
-      yaml = [ ]
-
-      spacers = [
-        "#{sep * tabs}- ",
-        "#{sep * tabs}  "
-      ]
-
-      d = self.descriptor
-      v = (self.value.nil?) ? 'null' : "\"#{self.value.escape('"')}\""
-
-      yaml.push("#{spacers[0]}type: #{d[0]}")
-      yaml.push("#{spacers[1]}#{d[1]}: #{v}")
-      yaml.push("#{spacers[1]}tags:")
-      self.tags.each { |tag| yaml += tag.to_yaml((tabs + 1), sep) }
-      yaml.push("#{spacers[1]}children:")
-      self.children.each { |child| yaml += child.to_yaml((tabs + 1), sep) }
-
-      return yaml.join("\n")
-    end
-
   end
 end

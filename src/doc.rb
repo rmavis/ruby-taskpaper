@@ -1,5 +1,3 @@
-require_relative './utils.rb'
-require_relative './node.rb'
 require_relative './parser.rb'
 
 
@@ -9,10 +7,10 @@ module Taskpaper
 
 
     def initialize(filename = nil)
-      if filename.nil? || filename.is_a?(String)
+      if (filename.nil? || filename.is_a?(String))
         @filename = filename
       else
-        raise ArgumentError.new("Must initialize a new Taskpaper::Doc with a string (the filename) or `nil` (default).")
+        raise ArgumentError.new("Must initialize a new Doc with a string (the filename) or `nil` (default).")
       end
     end
 
@@ -20,12 +18,11 @@ module Taskpaper
 
 
 
-    def parse
-      if self.can_read?(self.filename)
-        return Parser::read_lines(self.filename)
+    def parse(filename = self.filename)
+      if self.can_read?(filename)
+        return Parser::read_lines(filename)
       else
-        puts "Error: can't read file '#{self.filename}'."
-        return nil
+        raise RuntimeError.new("Unable to parse '#{filename}': can't read file.")
       end
     end
 
@@ -43,11 +40,3 @@ module Taskpaper
   end
 
 end
-
-
-
-doc = Taskpaper::Doc.new('sample.taskpaper')
-node = doc.parse
-# puts node.to_tp
-# puts node.to_json
-puts node.to_yaml

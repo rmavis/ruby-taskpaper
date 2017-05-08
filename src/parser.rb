@@ -218,6 +218,6 @@ end
 
 p = Taskpaper::Parser.new('../sample.taskpaper')
 node = p.read_lines
-# puts node.to_tp
+puts node.to_tp
 # puts node.to_json
-puts node.to_yaml
+# puts node.to_yaml

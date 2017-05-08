@@ -64,7 +64,7 @@ module Taskpaper
 
 
     def value=(val = nil)
-      if val.nil? || val.is_a?(String)
+      if (val.nil? || val.is_a?(String))
         @value = val
       else
         raise TypeError.new("A node's value must be a string or nil.")
@@ -74,7 +74,7 @@ module Taskpaper
 
 
     def parent=(node = nil)
-      if is_relation_valid?(node)
+      if (node.nil? || node.is_a?(Node))
         @parent = node
       else
         raise TypeError.new("A node's parent must be nil or a node.")
@@ -110,52 +110,50 @@ module Taskpaper
 
 
 
-    def info_arr
-      t = (self.type.nil?) ? 'nil' : self.type.to_s
-      v = (self.value.nil?) ? 'nil' : self.value
-      return [t, v]
-    end
+    #
+    # These four functions might be pointless.
+    #
+
+    # def info_arr
+    #   t = (self.type.nil?) ? 'nil' : self.type.to_s
+    #   v = (self.value.nil?) ? 'nil' : self.value
+    #   return [t, v]
+    # end
+
+    # def info_short
+    #   a = self.info_arr
+    #   return "#{a[0]}: #{a[1]}"
+    # end
+
+    # def info_long
+    #   a = self.info_arr
+    #   return "Type: #{a[0]}\nValue: #{a[1]}"
+    # end
+
+    # def describe
+    #   p = (self.parent.is_a?(Node)) ? self.parent.info_short : 'nil'
+    #   return "#{self.info_long}\nParent: #{p}\nNumber of children: #{self.children.length}"
+    # end
 
 
 
-    def info_short
-      a = self.info_arr
-      return "#{a[0]}: #{a[1]}"
-    end
+    # def to_h(trans = { })
+    #   d = self.descriptor
 
+    #   t = (trans.has_key?(:type)) ? trans[:type].call(self.type) : d[0]
+    #   v = (trans.has_key?(:value)) ? trans[:value].call(self.value) : self.value
 
-
-    def info_long
-      a = self.info_arr
-      return "Type: #{a[0]}\nValue: #{a[1]}"
-    end
-
-
-
-    def describe
-      p = (self.parent.is_a?(Node)) ? self.parent.info_short : 'nil'
-      return "#{self.info_long}\nParent: #{p}\nNumber of children: #{self.children.length}"
-    end
-
-
-
-    def to_h(trans = { })
-      d = self.descriptor
-
-      t = (trans.has_key?(:type)) ? trans[:type].call(self.type) : d[0]
-      v = (trans.has_key?(:value)) ? trans[:value].call(self.value) : self.value
-
-      return {
-        :type => t,
-        d[1].to_sym => v,
-        :children => self.children.map { |child| child.to_h(trans) }
-      }
-    end
+    #   return {
+    #     :type => t,
+    #     d[1].to_sym => v,
+    #     :children => self.children.map { |child| child.to_h(trans) }
+    #   }
+    # end
 
 
 
     def to_json
-      require_relative './json-printer.rb'
+      require_relative './printer-json.rb'
       p = JsonPrinter.new(self)
       return p.print_node
     end
@@ -163,7 +161,7 @@ module Taskpaper
 
 
     def to_yaml(tabs = 0, sep = '  ')
-      require_relative './yaml-printer.rb'
+      require_relative './printer-yaml.rb'
       p = YamlPrinter.new(self)
       return p.print_node
     end
@@ -190,15 +188,6 @@ module Taskpaper
       return tp.join("\n")
     end
 
-
-
-
-    private
-
-
-    def is_relation_valid?(node = nil)
-      return (node.nil? || node.is_a?(Taskpaper::Node))
-    end
 
   end
 end

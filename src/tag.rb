@@ -5,8 +5,6 @@ require_relative './utils.rb'
 module Taskpaper
   class Tag
 
-    attr_reader :value, :param
-
     def initialize(attrs = { })
       def_attrs = {
         :value => nil,
@@ -23,6 +21,8 @@ module Taskpaper
         end
       end
     end
+
+    attr_reader :value, :param
 
 
 
@@ -46,30 +46,28 @@ module Taskpaper
 
 
 
-    def to_h(trans = { })
-      v = (trans.has_key?(:value)) ? trans[:value].call(self.value) : self.value
-      p = (trans.has_key?(:value)) ? trans[:value].call(self.param) : self.param
-      # p = (trans.has_key?(:param)) ? trans[:param].call(self.param) : self.param
+    # def to_h(trans = { })
+    #   v = (trans.has_key?(:value)) ? trans[:value].call(self.value) : self.value
+    #   p = (trans.has_key?(:value)) ? trans[:value].call(self.param) : self.param
+    #   # p = (trans.has_key?(:param)) ? trans[:param].call(self.param) : self.param
 
-      return {
-        :value => v,
-        :param => p
-      }
-    end
+    #   return {
+    #     :value => v,
+    #     :param => p
+    #   }
+    # end
 
+    # def to_yaml(tabs = 0, sep = '  ')
+    #   yaml = [ ]
 
+    #   v = (self.value.nil?) ? 'null' : "\"#{self.value.escape('"')}\""
+    #   p = (self.param.nil?) ? 'null' : "\"#{self.param.escape('"')}\""
 
-    def to_yaml(tabs = 0, sep = '  ')
-      yaml = [ ]
+    #   yaml.push("#{sep * tabs}- value: #{v}")
+    #   yaml.push("#{sep * tabs}  param: #{p}")
 
-      v = (self.value.nil?) ? 'null' : "\"#{self.value.escape('"')}\""
-      p = (self.param.nil?) ? 'null' : "\"#{self.param.escape('"')}\""
-
-      yaml.push("#{sep * tabs}- value: #{v}")
-      yaml.push("#{sep * tabs}  param: #{p}")
-
-      return yaml.join("\n")
-    end
+    #   return yaml.join("\n")
+    # end
 
   end
 end
