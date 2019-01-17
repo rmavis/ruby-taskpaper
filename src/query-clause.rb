@@ -1,6 +1,53 @@
 module Taskpaper
   class QueryClause
 
+    def self.builtin_attributes
+      [
+	    :text,
+        :type,
+        :id,
+	    # :level,
+	    # :parent,
+	    # :project,
+	    # :index,
+	    # :uniqueid,
+      ]
+    end
+
+    def self.default_attribute
+       :text
+    end
+
+
+    def self.valid_relations
+      [
+        '=',
+        '!=',
+        '>',
+        '>=',
+        '<',
+        '<=',
+        'contains',
+        'beginswith',
+        'endswith',
+        'matches',
+      ]
+    end
+
+    def self.default_relation
+      'contains'
+    end
+
+
+    def self.valid_logical_operators
+      [
+        'and',
+        'or',
+        'not',
+      ]
+    end
+
+
     def default_q
       {
         # The attribute is the thing that will be searched. There
@@ -11,12 +58,12 @@ module Taskpaper
         # `@do(today)` specifies an attribute named `do` with a
         # value of `today`.
         # Default: :text
-        :attr => :text,
+        :attr => QueryClause::default_attribute,
         # The relation is the form/mode of comparison. Legal forms:
         #   =, !=, >, <, <=, >=, contains, (begins|ends)with, matches
         # The `matches` relation converts the query term to a regex.
         # Default: contains (case-insensitive)
-        :rel => :contains,
+        :rel => QueryClause::default_relation,
         # And this is the query term.
         :val => nil,
         # The logical operator. Legal values: and, or, not.

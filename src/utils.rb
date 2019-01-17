@@ -28,4 +28,19 @@ class String
     return self.gsub(char, "\\#{char}")
   end
 
+
+  def collect_to(check)
+    n = 0
+
+    while (n < self.length)
+      if (check.call(self[n]))
+        break
+      else
+        n += 1
+      end
+    end
+
+    return self[0, n]
+  end
+
 end

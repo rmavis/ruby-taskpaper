@@ -1,4 +1,5 @@
 require_relative './query-clause.rb'
+require_relative './utils.rb'
 
 
 
@@ -7,6 +8,7 @@ module Taskpaper
     # reference: https://guide.taskpaper.com/reference/searches/
 
     # TODO:
+    # shortcuts: https://guide.taskpaper.com/reference/searches/#shortcuts
     # relation modifiers 
     # item path queries
 
@@ -27,7 +29,7 @@ module Taskpaper
     #   optional
     #   default: nil
     # - attribute, which is the content to search
-    #   builtin: type, text, level, parent, project, index, uniqueid
+    #   builtin: text, type, level, parent, project, index, uniqueid
     #   required
     #   default: text
     # - relation modifier
@@ -51,60 +53,57 @@ module Taskpaper
     # - @priority > 1
     #   : text contains @priority(.+) and $1 > 1
 
+    # If one part of the query is missing, and that part is optional,
+    # then the default will be used.
+
 
     def tokenize(str = '')
+      puts "STRING: #{str}"
       tokens = [ ]
 
       n = 0
-      o = 0
-      p = 0
-      x = 10
+      m = 0
       while (n < str.length)
         char = str[n]
-	    puts "Checking character '#{char}' (index #{n})"
+	    # puts "Checking character '#{char}' (index #{n})"
 
         if (char == ' ')
 	      # puts "Character is space. Skipping."
           n += 1
         elsif (char == '(')
 	      # puts "Character is open parens."
-          tokens.push({:type => :grouper, :val => '('})
+          tokens.push({:type => :paren, :val => '('})
           n += 1
         elsif (char == ')')
 	      # puts "Character is close parens."
-          tokens.push({:type => :grouper, :val => ')'})
+          tokens.push({:type => :paren, :val => ')'})
           n += 1
         elsif ((char == '"') || (char == "'"))
 	      # puts "Character is a quote."
-          n += 1  # Discard the quote.
-          t = self.up_to_char(str[n, (str.length - n)], char)
-          tokens.push({:type => :term, :val => t[:value]})
+          val = str[(n + 1), (str.length - (n + 1))].collect_to(lambda { |c| (c == char) })
+          tokens.push({:type => :term, :val => val})
+          n += (val.length + 2)  # Skip the quote characters.
 	      # puts "Got term: #{tokens}"
-          n += (t[:index] + 1)  # Skip the closing quote.
         elsif (char == '@')
 	      # puts "Character is an attribute marker."
-          n += 1  # Discard the `@`.
-          t = self.up_to_char(str[n, (str.length - n)], ['(', ' '])
-          tokens.push({:type => :attribute, :val => t[:value]})
+          val = str[(n + 1), (str.length - (n + 1))].collect_to(lambda { |c| ['(', ' '].include?(c) })
+          tokens.push({:type => :attribute, :val => val})
+          n += (val.length + 1)  # Discard the `@`
 	      # puts "Got attribute: #{tokens}"
-          n += t[:index]
         else
 	      # puts "Character is a character."
-          t = self.up_to_char(str[n, (str.length - n)], [' ', '(', ')', '@'])
-          tokens.push({:type => :term, :val => t[:value]})
+          val = str[n, (str.length - n)].collect_to(lambda { |c| [' ', '(', ')', '@'].include?(c) })
+          tokens.push({:type => self.get_term_type(val), :val => val})
+          n += val.length
 	      # puts "Got term: #{tokens}"
-          n += t[:index]
         end
 
         # Just to prevent infinite loops.
-        if (o == n)
-          p += 1
-          if (p >= x)
-            puts "BREAKING TOKENIZE WHILE LOOOP"
-            break
-          end
+        if (n == m)
+          puts "BREAKING TOKENIZE WHILE LOOOP"
+          break
         else
-          o = n
+          m = n
         end
       end
 
@@ -113,58 +112,19 @@ module Taskpaper
     end
 
 
-
-    # `char` can be an array or a string.
-    def up_to_char(str, stop = ' ')
-      parts = [ ]
-      n = 0
-
-      if stop.is_a?(Array)
-        while (n < str.length)
-          char = str[n]
-          if (stop.include?(char))
-            break
-          else
-            parts.push(char)
-            n += 1
-          end
-        end
-
-      elsif stop.is_a?(String)
-        while (n < str.length)
-          char = str[n]
-          if (stop == char)
-            break
-          else
-            parts.push(char)
-            n += 1
-          end
-        end
-
+    def get_term_type(term)
+      if (QueryClause::valid_relations.include?(term))
+        return :relation
+      elsif (QueryClause::valid_logical_operators.include?(term))
+        return :logic
       else
-        puts "NO STOP CHARACTER GIVEN"
+        return :term
       end
-
-      return {
-        :value => parts.join,
-        :index => n
-      }
     end
 
 
 
-    # Valid attribute forms:
-    # @name
-    # @name(value)
-    # @name relation value
-    # def get_attribute_token(str = '')
-    #   t = {
-    #     :token => nil,
-    #     :index => 0
-    #   }
 
-    #   return t
-    # end
 
 
   end
@@ -175,16 +135,22 @@ end
 # TOKENS: [{:type=>:attribute, :val=>"todo"}]
 
 # Taskpaper::Query.new("@todo(today)")
-# TOKENS: [{:type=>:attribute, :val=>"todo"}, {:type=>:grouper, :val=>"("}, {:type=>:term, :val=>"today"}, {:type=>:grouper, :val=>")"}]
+# TOKENS: [{:type=>:attribute, :val=>"todo"}, {:type=>:paren, :val=>"("}, {:type=>:term, :val=>"today"}, {:type=>:paren, :val=>")"}]
 
 # Taskpaper::Query.new("this is what")
 # TOKENS: [{:type=>:term, :val=>"this"}, {:type=>:term, :val=>"is"}, {:type=>:term, :val=>"what"}]
 
 # Taskpaper::Query.new("this (@is(what))")
-# TOKENS: [{:type=>:term, :val=>"this"}, {:type=>:grouper, :val=>"("}, {:type=>:attribute, :val=>"is"}, {:type=>:grouper, :val=>"("}, {:type=>:term, :val=>"what"}, {:type=>:grouper, :val=>")"}, {:type=>:grouper, :val=>")"}]
+# TOKENS: [{:type=>:term, :val=>"this"}, {:type=>:paren, :val=>"("}, {:type=>:attribute, :val=>"is"}, {:type=>:paren, :val=>"("}, {:type=>:term, :val=>"what"}, {:type=>:paren, :val=>")"}, {:type=>:paren, :val=>")"}]
 
 # Taskpaper::Query.new("'this (is' what)")
-# TOKENS: [{:type=>:term, :val=>"this (is"}, {:type=>:term, :val=>"what"}, {:type=>:grouper, :val=>")"}]
+# TOKENS: [{:type=>:term, :val=>"this (is"}, {:type=>:term, :val=>"what"}, {:type=>:paren, :val=>")"}]
 
 # Taskpaper::Query.new('"th"is (is\' what)')
-# TOKENS: [{:type=>:term, :val=>"th"}, {:type=>:term, :val=>"is"}, {:type=>:grouper, :val=>"("}, {:type=>:term, :val=>"is'"}, {:type=>:term, :val=>"what"}, {:type=>:grouper, :val=>")"}]
+# TOKENS: [{:type=>:term, :val=>"th"}, {:type=>:term, :val=>"is"}, {:type=>:paren, :val=>"("}, {:type=>:term, :val=>"is'"}, {:type=>:term, :val=>"what"}, {:type=>:paren, :val=>")"}]
+
+Taskpaper::Query.new("@type = project")
+Taskpaper::Query.new("@type contains project")
+Taskpaper::Query.new("@type not project")
+Taskpaper::Query.new("not project")
+Taskpaper::Query.new("yum")

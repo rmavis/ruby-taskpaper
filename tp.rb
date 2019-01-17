@@ -44,7 +44,7 @@ module Taskpaper
       }
 
       n = 0
-      while n < args.length
+      while (n < args.length)
         arg = args[n]
 
         if (arg[0] == '-')
@@ -54,7 +54,7 @@ module Taskpaper
             check = self.check_short_arg(arg[1, (arg.length - 1)].downcase)
           end
 
-          if check.is_a?(Hash)
+          if (check.is_a?(Hash))
             if (check.has_key?(:query))
               if (check[:query] == :next)
                 # For now, just collect the rest of the args.  @TODO
@@ -111,7 +111,7 @@ module Taskpaper
       # `-y` to specify yaml
       elsif (arg == 'y')
         return {:printer => :to_yaml}
-      # `-y` to query
+      # `-q` to query
       elsif (arg[0] == 'q')
         if (arg[1] == '=')
           return {:query => Query.new(arg[1, (arg.length - 1)])}
